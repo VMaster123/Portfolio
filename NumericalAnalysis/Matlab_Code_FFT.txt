@@ -1,0 +1,43 @@
+n = 200;
+k = 0:n-1;
+x_k = (2*pi/n) * k;
+%f_xk = (sin(5*x_k)).^2;
+
+f_xk = (cos(3*x_k)).^3 + cos(sqrt(2)*x_k);
+
+F = fft(f_xk) / n;
+
+j_values = -5:5;
+f_h_t = zeros(size(j_values));
+
+for idx = 1:length(j_values)
+    j_val = j_values(idx);
+    if j_val >= 0
+        f_h_t(idx) = F(j_val + 1);
+    else
+        f_h_t(idx) = F(n + j_val + 1);
+    end
+end
+
+F_shifted = fftshift(F);
+center = n/2 + 1;
+f_s = F_shifted(center-5:center+5);
+
+x_vals = linspace(0, 2*pi, n);
+g = zeros(size(x_vals));
+
+for idx = 1:length(j_values)
+    j_val = j_values(idx);
+    g = g + f_h_t(idx) * exp(1i * j_val * x_vals);
+end
+
+
+figure;
+plot(x_vals, real(f_xk), 'g');
+hold on;
+plot(x_vals, real(g), 'r');
+xlabel('x');
+ylabel('y');
+title('Question 5B');
+legend('f(x)', 'g_5(x)');
+grid on;
