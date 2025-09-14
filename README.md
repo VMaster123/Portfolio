@@ -4,7 +4,7 @@
 - 🔭 I’m currently working on **Neural Partial Differential Equations Modeling for Nonlinear Chaotic Systems**
 - 🔭 I’m also currently working on **Spectral Inverse Modeling of Space Plasmas**
 
-- 🌱 I’m currently learning **Partial Differential Equations, Scientific Machine Learning, Quantum Mechanics, C, Spark, D3JS, CUDA**
+- 🌱 I’m currently learning **Partial Differential Equations, Scientific Machine Learning, Quantum Mechanics Modeling, C, Spark, D3JS, CUDA**
 
 - 💬 Ask me about **Java, Algorithms, Inverse Problem Theory, and Dynamical Systems**
 
