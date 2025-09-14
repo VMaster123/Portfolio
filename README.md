@@ -12,6 +12,5 @@
 
 ![Coverage](https://img.shields.io/codecov/c/github/usernam/repo)
 
-![Tech Stack](https://github-profile-readme-maker.vercel.app/api/top-langs/?username=Vmaster123&layout=compact)
 
 
