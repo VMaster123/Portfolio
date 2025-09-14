@@ -6,7 +6,7 @@
 
 - 🌱 I’m currently learning **Partial Differential Equations, Scientific Machine Learning, Quantum Mechanics Modeling, C, Spark, D3JS, CUDA**
 
-- 💬 Ask me about **Java, Algorithms, Inverse Problem Theory, and Dynamical Systems**
+- 💬 Ask me about **Computer Algorithms, Inverse Problem Theory, Machine Learning, Linear Algebra, Probability and Statistics, Dynamical Systems, Java, and Python**
 
 - 📫 How to reach me **vilohithg@gmail.com**
 
