@@ -12,6 +12,6 @@
 
 ![Coverage](https://img.shields.io/codecov/c/github/usernam/repo)
 
-![My GitHub Stats](https://github-readme-stats.vercel.app/api/wakatime?username=VMaster123)
+![Tech Stack](https://github-profile-readme-maker.vercel.app/api/top-langs/?username=Vmaster123&layout=compact)
 
 
