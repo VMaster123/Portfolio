@@ -10,6 +10,6 @@
 
 - 📫 How to reach me **vilohithg@gmail.com**
 
-![Your GitHub stats](https://github-readme-stats.vercel.app/api?username=YOUR_USERNAME&show_icons=true&theme=radical)
+![My GitHub stats](https://github-readme-stats.vercel.app/api?username=VMaster123&show_icons=true&theme=radical)
 
 
