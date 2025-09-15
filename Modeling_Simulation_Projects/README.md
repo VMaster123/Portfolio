@@ -1,1 +1,1 @@
-This is where I will put projects I made based on class content from my CX 4230 class. This will include projects such as Markov Chains, Celluar Automata, Dynamical Systems, PDE and Numerical Analysis, etc.
+This is where I will put all of my Modeling and Simulation Projects that I personally made, based on my SciML class and Computer Simulation Class.
