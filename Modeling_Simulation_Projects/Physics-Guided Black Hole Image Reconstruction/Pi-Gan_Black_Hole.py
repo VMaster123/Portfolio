@@ -637,7 +637,7 @@ final_mse = F.mse_loss(final_reconstruction, ground_truth).item()
 pixel_accuracy = (1 - final_mse / 4.0) * 100  # 4.0 is max MSE for [-1,1] range
 final_phys_loss = history["g_phys_loss"][-1] if len(history["g_phys_loss"]) > 0 else 0.0
 
-print(f"\n📊 FINAL NUMERICAL RESULTS:")
+print(f"\nFINAL NUMERICAL RESULTS:")
 print(f"  {'='*70}")
 print(f"  RECONSTRUCTION QUALITY METRICS:")
 print(f"    Peak Signal-to-Noise Ratio (PSNR): {final_psnr_val:.2f} dB")
@@ -763,21 +763,21 @@ def plot_results(gt, mask, recon, history, final_psnr_value):
 
     plt.tight_layout()
     plt.savefig("reconstruction_results.png", dpi=150, bbox_inches="tight")
-    print("\n📈 Visualization saved to 'reconstruction_results.png'")
+    print("\nVisualization saved to 'reconstruction_results.png'")
 
 
 plot_results(ground_truth, uv_mask, final_reconstruction, history, final_psnr_val)
 
 print("\n" + "=" * 80)
-print("📋 RESUME-READY SUMMARY")
+print("RESUME-READY SUMMARY")
 print("=" * 80)
 print("\nKey Achievements:")
-print(f"  • PSNR: {final_psnr_val:.2f} dB (improvement: {psnr_improvement:.2f} dB)")
-print(f"  • SSIM: {final_ssim_val:.4f}")
-print(f"  • Fourier Error Reduction: {fourier_reduction:.1f}x")
-print(f"  • Model Size: {total_params/1e6:.2f}M parameters")
+print(f"  - PSNR: {final_psnr_val:.2f} dB (improvement: {psnr_improvement:.2f} dB)")
+print(f"  - SSIM: {final_ssim_val:.4f}")
+print(f"  - Fourier Error Reduction: {fourier_reduction:.1f}x")
+print(f"  - Model Size: {total_params/1e6:.2f}M parameters")
 print(
-    f"  • Training Efficiency: {convergence_epoch} epochs, {total_time/60:.2f} minutes"
+    f"  - Training Efficiency: {convergence_epoch} epochs, {total_time/60:.2f} minutes"
 )
-print(f"  • Physics Consistency: {final_fourier_err_val:.6f} (target: <0.001)")
-print("\n✅ All done! Check 'reconstruction_results.png' for comprehensive results.")
+print(f"  - Physics Consistency: {final_fourier_err_val:.6f} (target: <0.001)")
+print("\nAll done! Check 'reconstruction_results.png' for comprehensive results.")
