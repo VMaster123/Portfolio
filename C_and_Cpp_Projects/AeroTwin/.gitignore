@@ -1,0 +1,52 @@
+# Build directories
+build/
+bin/
+obj/
+out/
+.vs/
+
+# Compilation artifacts
+*.exe
+*.o
+*.obj
+*.pdb
+*.lib
+*.a
+*.dll
+*.so
+*.dylib
+
+# Node.js
+node_modules/
+package-lock.json
+npm-debug.log*
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+env/
+venv/
+.env
+
+# ML Artifacts
+ml/training_validation.png
+*.onnx
+
+# Simulation logs/outputs
+sim_output.txt
+build_log.txt
+build_error.txt
+telemetry.json
+
+# IDE - VS Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# OS specific files
+.DS_Store
+Thumbs.db

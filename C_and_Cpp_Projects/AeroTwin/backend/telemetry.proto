@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+package aerotwin.telemetry;
+
+// Telemetry Streaming Service
+service TelemetryService {
+  rpc StreamData (stream TelemetryPacket) returns (StreamResponse);
+}
+
+message TelemetryPacket {
+  double timestamp = 1;
+  
+  // 6-DOF State
+  Vector3 position = 2; // NED
+  Vector3 velocity = 3; // Body
+  Quaternion orientation = 4;
+  Vector3 angular_velocity = 5;
+  
+  // Aerodynamic Estimates
+  double cl_estimate = 6;
+  double cd_estimate = 7;
+  
+  // ML Residuals
+  Vector3 ml_residual_force = 8;
+  double model_confidence = 9;
+}
+
+message Vector3 {
+  double x = 1;
+  double y = 2;
+  double z = 3;
+}
+
+message Quaternion {
+  double w = 1;
+  double x = 2;
+  double y = 3;
+  double z = 4;
+}
+
+message StreamResponse {
+  bool success = 1;
+  string message = 2;
+}

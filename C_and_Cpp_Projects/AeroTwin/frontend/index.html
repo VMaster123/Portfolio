@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AeroTwin | Digital Twin Visualizer</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono&display=swap"
+        rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            background: #0b0e14;
+            color: #58a6ff;
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+            display: flex;
+        }
+
+        #canvas-container {
+            flex: 1;
+            position: relative;
+        }
+
+        #sidebar {
+            width: 350px;
+            background: #161b22;
+            border-right: 1px solid #30363d;
+            padding: 20px;
+            overflow-y: auto;
+            z-index: 10;
+        }
+
+        .card {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.4);
+        }
+
+        h2,
+        h3 {
+            color: #fff;
+            margin: 0 0 10px 0;
+            letter-spacing: 0.5px;
+        }
+
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .val {
+            color: #fff;
+            font-weight: bold;
+        }
+
+        #status {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #d29922;
+            margin-right: 8px;
+        }
+
+        .chart-box {
+            height: 150px;
+            width: 100%;
+        }
+
+        canvas {
+            display: block;
+        }
+
+        #overlay-tools {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 5px;
+            border-radius: 5px;
+            color: #fff;
+            font-size: 12px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="sidebar">
+        <h2>AeroTwin-V3</h2>
+        <div class="metric">
+            <div id="status"></div> Status: <span id="status-text">CONNECTING</span>
+        </div>
+        <hr style="border: 0; border-top: 1px solid #30363d;">
+
+        <div class="card">
+            <h3>Flight State</h3>
+            <div class="metric">Altitude: <span class="val" id="alt">0.00</span> m</div>
+            <div class="metric">V_airspeed: <span class="val" id="vel">0.00</span> m/s</div>
+            <div class="metric">Tracking: <span class="val" id="wp-label">INIT</span></div>
+            <div class="metric">Phase: <span class="val" id="tracking-mode">AUTO</span></div>
+        </div>
+
+        <div class="card">
+            <h3>Inverse Engine (CL Identification)</h3>
+            <div class="metric">Estimation Confidence: <span class="val" id="conf">0%</span></div>
+            <div style="height: 5px; background: #30363d; border-radius: 3px; margin-bottom: 10px;">
+                <div id="conf-bar"
+                    style="height: 100%; background: #238636; width: 0%; border-radius: 3px; transition: width 0.3s;">
+                </div>
+            </div>
+            <div class="chart-box"><canvas id="cl-chart"></canvas></div>
+            <p style="font-size: 11px; color: #8b949e; margin-top: 10px;">
+                Blue: Estimated | Red: Target Inferred from Vision.
+            </p>
+        </div>
+
+        <div class="card" style="background: rgba(88, 166, 255, 0.05); border-color: rgba(88, 166, 255, 0.3);">
+            <h3>Theory of Operation</h3>
+            <p style="font-size: 11px; line-height: 1.4;">
+                AeroTwin uses <b>Recursive Least Squares (RLS)</b> to identify aerodynamic coefficients in real-time. By
+                inverting the 6-DOF equations, the twin observes motion to infer lift stability—enabling precise health
+                monitoring and performance optimization.
+            </p>
+        </div>
+
+        <div style="font-size: 11px; color: #8b949e; text-align: center; margin-top: 20px;">
+            Scroll to Zoom | Drag to Orbit | Right-Click to Pan
+        </div>
+    </div>
+
+    <div id="canvas-container">
+        <div id="overlay-tools">Orbit: Left | Pan: Right | Zoom: Scroll</div>
+    </div>
+
+    <script>
+        // --- CHARTS SETUP ---
+        const ctx = document.getElementById('cl-chart').getContext('2d');
+        const clChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [
+                    { label: 'Estimated', data: [], borderColor: '#58a6ff', borderWidth: 2, pointRadius: 0 },
+                    { label: 'Target (Vision)', data: [], borderColor: '#f85149', borderWidth: 1, borderDash: [5, 5], pointRadius: 0 }
+                ]
+            },
+            options: { animation: false, scales: { x: { display: false }, y: { min: -0.5, max: 2.0 } }, plugins: { legend: { display: false } } }
+        });
+
+        // --- THREE.JS SETUP ---
+        const container = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x0b0e14);
+
+        const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(container.clientWidth, container.clientHeight);
+        renderer.shadowMap.enabled = true;
+        container.appendChild(renderer.domElement);
+
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+
+        // Visual Helpers
+        scene.add(new THREE.GridHelper(500, 100, 0x30363d, 0x161b22));
+        scene.add(new THREE.AxesHelper(10));
+
+        // Lighting
+        scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+        const sun = new THREE.DirectionalLight(0xffffff, 1);
+        sun.position.set(50, 100, 50);
+        scene.add(sun);
+
+        // Drone Rendering
+        const drone = new THREE.Group();
+        const body = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.3, 0.8), new THREE.MeshPhongMaterial({ color: 0x00f2ff }));
+        drone.add(body);
+
+        const rotors = [[1, 0.2, 1], [-1, 0.2, 1], [1, 0.2, -1], [-1, 0.2, -1]].map(p => {
+            const r = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.6, 0.02), new THREE.MeshPhongMaterial({ color: 0xffff00, transparent: true, opacity: 0.6 }));
+            r.position.set(...p);
+            drone.add(r);
+            return r;
+        });
+        scene.add(drone);
+        camera.position.set(20, 20, 20);
+
+        // --- PATH INITIALIZATION ---
+        const pathPositions = [];
+        const pathGeometry = new THREE.BufferGeometry();
+        const pathMaterial = new THREE.LineBasicMaterial({ color: 0xffaa00, linewidth: 3 });
+        const pathLine = new THREE.Line(pathGeometry, pathMaterial);
+        scene.add(pathLine);
+
+        const ws = new WebSocket(`ws://${location.host}${location.search}`);
+        ws.onopen = () => {
+            document.getElementById('status').style.background = '#238636';
+            document.getElementById('status-text').innerText = 'LINKED';
+        };
+
+        ws.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+
+            // Update UI
+            document.getElementById('alt').innerText = data.alt.toFixed(2);
+            document.getElementById('vel').innerText = data.vx.toFixed(2);
+            document.getElementById('conf').innerText = (data.conf * 100).toFixed(0) + '%';
+            document.getElementById('conf-bar').style.width = (data.conf * 100) + '%';
+            document.getElementById('wp-label').innerText = data.wp;
+
+            // Update 3D Drone (NED -> Three.js Mapping)
+            const newPos = new THREE.Vector3(data.py, -data.pz, -data.px);
+            drone.position.copy(newPos);
+            drone.quaternion.set(data.qy, -data.qz, -data.qx, data.qw);
+            rotors.forEach(r => r.rotation.y += 0.5);
+
+            // Update Path
+            pathPositions.push(newPos.clone());
+            if (pathPositions.length > 1000) pathPositions.shift();
+            pathGeometry.setFromPoints(pathPositions);
+
+            // Update Charts
+            if (clChart.data.labels.length > 50) {
+                clChart.data.labels.shift();
+                clChart.data.datasets[0].data.shift();
+                clChart.data.datasets[1].data.shift();
+            }
+            clChart.data.labels.push("");
+            clChart.data.datasets[0].data.push(data.cl);
+            clChart.data.datasets[1].data.push(data.cl_target);
+            clChart.update('none');
+        };
+
+        window.addEventListener('resize', () => {
+            camera.aspect = container.clientWidth / container.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container.clientWidth, container.clientHeight);
+        });
+
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+        animate();
+    </script>
+</body>
+
+</html>
