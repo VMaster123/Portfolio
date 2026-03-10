@@ -17,14 +17,14 @@ add_library(aerotwin_core
     simulation/src/Dynamics.cpp
     vision/src/Vision.cpp
     control/src/Control.cpp
-    inverse/src/Estimator.cpp
+    estimation/src/KalmanFilter.cpp
 )
 
 target_include_directories(aerotwin_core PUBLIC 
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/simulation/include>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/vision/include>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/control/include>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/inverse/include>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/estimation/include>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/ml/include>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/backend/include>
 )

@@ -9,7 +9,7 @@
 #include "Dynamics.h"
 #include "Vision.h"
 #include "Control.h"
-#include "Estimator.h"
+#include "KalmanFilter.h"
 #include "NeuralSurrogate.h"
 
 #ifndef M_PI
@@ -26,7 +26,7 @@ namespace aerotwin {
 int main(int argc, char** argv) {
     aerotwin::Parameters params;
     aerotwin::Controller controller;
-    aerotwin::Estimator estimator;
+    aerotwin::StateEstimator estimator;
     aerotwin::MLSurrogate ml_pinn;
 
     aerotwin::State state = aerotwin::State::Zero();
@@ -97,15 +97,17 @@ int main(int argc, char** argv) {
                                              Eigen::AngleAxisd(0.0, Eigen::Vector3d::UnitY()) *
                                              Eigen::AngleAxisd(target_bank, Eigen::Vector3d::UnitX()));
 
-        // --- INVERSE ENGINE & PREDICTION LOGIC ---
-        // Observed "Dummy Force" identifying lift coefficients
-        Eigen::Vector3d f_obs(0, 0, -(params.mass * params.gravity)); 
+        // --- STATE ESTIMATION (KALMAN FILTER) ---
+        // Simulate noisy GPS measurements
+        Eigen::Vector3d noise((std::rand() % 100 - 50) / 500.0, 
+                               (std::rand() % 100 - 50) / 500.0, 
+                               (std::rand() % 100 - 50) / 500.0);
+        Eigen::Vector3d noisy_pos = state.position + noise;
+
+        estimator.predict(Eigen::Vector3d::Zero(), Eigen::Vector3d::Zero(), dt);
+        estimator.updateGPS(noisy_pos);
         
         double vx = state.velocity.norm();
-        double true_aoa = 5.0 + 2.0 * sin(total_time * 0.5); 
-        double vision_aoa = true_aoa + (std::rand() % 100 - 50) / 200.0; 
-
-        estimator.update(state, f_obs, vision_aoa, dt);
         Eigen::Vector3d ml_residuals = ml_pinn.predictResidual(state.toVector());
 
         // --- JSON TELEMETRY OUTPUT ---
@@ -120,8 +122,8 @@ int main(int argc, char** argv) {
                   << "\"qx\":" << state.orientation.x() << ","
                   << "\"qy\":" << state.orientation.y() << ","
                   << "\"qz\":" << state.orientation.z() << ","
-                  << "\"cl\":" << estimator.getCL() << ","
-                  << "\"cl_target\":" << estimator.getTargetCL() << ","
+                  << "\"cl\":" << 0.65 << "," // Constant for demo
+                  << "\"cl_target\":" << 0.7 << ","
                   << "\"conf\":" << estimator.getConfidence() << ","
                   << "\"res\":" << ml_residuals.norm() << ","
                   << "\"wp\":\"" << (total_time < 5.0 ? "Takeoff" : "Orbit") << "\"}" << std::endl;

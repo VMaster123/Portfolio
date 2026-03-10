@@ -1,0 +1,29 @@
+{
+  "name": "aerotwin-web",
+  "version": "1.0.0",
+  "description": "Simulation-driven Digital Twin for UAV Aerodynamics - Web Edition",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "vite",
+    "build": "vite build",
+    "serve": "vite preview"
+  },
+  "keywords": [
+    "uav",
+    "drone",
+    "simulation",
+    "digital-twin",
+    "threejs",
+    "react"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.22.1",
+    "ws": "^8.19.0"
+  },
+  "devDependencies": {
+    "vite": "^5.2.11"
+  }
+}

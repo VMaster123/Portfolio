@@ -4,244 +4,370 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AeroTwin | Digital Twin Visualizer</title>
+    <title>AeroTwin-NX | Digital Twin Visualizer</title>
+    <!-- Modern Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap"
+        rel="stylesheet">
+    <!-- Essential Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono&display=swap"
-        rel="stylesheet">
+
     <style>
-        body {
-            margin: 0;
-            background: #0b0e14;
-            color: #58a6ff;
-            font-family: 'Inter', sans-serif;
-            overflow: hidden;
-            display: flex;
+        :root {
+            --bg: #020617;
+            --sidebar-bg: rgba(15, 23, 42, 0.85);
+            --accent-blue: #38bdf8;
+            --accent-indigo: #818cf8;
+            --text-main: #f8fafc;
+            --text-dim: #94a3b8;
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --card-bg: rgba(30, 41, 59, 0.4);
         }
 
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text-main);
+            font-family: 'Outfit', sans-serif;
+            overflow: hidden;
+            display: flex;
+            height: 100vh;
+        }
+
+        /* --- Sidebar & Dashboard UI --- */
+        #sidebar {
+            width: 400px;
+            background: var(--sidebar-bg);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid var(--glass-border);
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            z-index: 100;
+            box-shadow: 20px 0 50px rgba(0, 0, 0, 0.5);
+            overflow-y: auto;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .header h1 {
+            font-weight: 800;
+            font-size: 24px;
+            margin: 0;
+            background: linear-gradient(135deg, #fff, var(--accent-blue));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.5px;
+        }
+
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            background: rgba(20, 184, 166, 0.2);
+            color: #2dd4bf;
+            border: 1px solid rgba(20, 184, 166, 0.3);
+            text-transform: uppercase;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 20px;
+            transition: transform 0.2s;
+        }
+
+        .card h2 {
+            font-size: 14px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin: 0 0 15px 0;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .metric-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .metric-item span.label {
+            font-size: 11px;
+            color: var(--text-dim);
+        }
+
+        .metric-item span.value {
+            font-size: 20px;
+            font-weight: 600;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--accent-blue);
+        }
+
+        /* --- 3D Visualizer Container --- */
         #canvas-container {
             flex: 1;
             position: relative;
         }
 
-        #sidebar {
-            width: 350px;
-            background: #161b22;
-            border-right: 1px solid #30363d;
-            padding: 20px;
-            overflow-y: auto;
-            z-index: 10;
-        }
-
-        .card {
-            background: #0d1117;
-            border: 1px solid #30363d;
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.4);
-        }
-
-        h2,
-        h3 {
-            color: #fff;
-            margin: 0 0 10px 0;
-            letter-spacing: 0.5px;
-        }
-
-        .metric {
+        #overlay-tools {
+            position: absolute;
+            bottom: 30px;
+            right: 30px;
+            background: var(--sidebar-bg);
+            backdrop-filter: blur(10px);
+            padding: 10px 20px;
+            border-radius: 40px;
+            border: 1px solid var(--glass-border);
+            color: var(--text-dim);
+            font-size: 12px;
             display: flex;
-            justify-content: space-between;
-            margin-bottom: 8px;
-            font-size: 14px;
-        }
-
-        .val {
-            color: #fff;
-            font-weight: bold;
-        }
-
-        #status {
-            display: inline-block;
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: #d29922;
-            margin-right: 8px;
+            gap: 20px;
         }
 
         .chart-box {
-            height: 150px;
-            width: 100%;
+            height: 180px;
+            margin-top: 10px;
         }
 
-        canvas {
-            display: block;
+        .confidence-meter {
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 5px;
         }
 
-        #overlay-tools {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: rgba(0, 0, 0, 0.5);
-            padding: 5px;
-            border-radius: 5px;
-            color: #fff;
+        #conf-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-indigo), var(--accent-blue));
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        /* --- Navigation Links --- */
+        .nav-links {
+            display: flex;
+            gap: 10px;
+            margin-top: auto;
+        }
+
+        .nav-btn {
+            flex: 1;
+            padding: 10px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            color: var(--text-main);
             font-size: 12px;
+            text-align: center;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .nav-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--accent-blue);
+        }
+
+        /* --- Responsive Tweaks --- */
+        @media (max-width: 900px) {
+            #sidebar {
+                width: 320px;
+            }
         }
     </style>
 </head>
 
 <body>
     <div id="sidebar">
-        <h2>AeroTwin-V3</h2>
-        <div class="metric">
-            <div id="status"></div> Status: <span id="status-text">CONNECTING</span>
-        </div>
-        <hr style="border: 0; border-top: 1px solid #30363d;">
-
-        <div class="card">
-            <h3>Flight State</h3>
-            <div class="metric">Altitude: <span class="val" id="alt">0.00</span> m</div>
-            <div class="metric">V_airspeed: <span class="val" id="vel">0.00</span> m/s</div>
-            <div class="metric">Tracking: <span class="val" id="wp-label">INIT</span></div>
-            <div class="metric">Phase: <span class="val" id="tracking-mode">AUTO</span></div>
+        <div class="header">
+            <h1>AeroTwin NX</h1>
+            <div class="status-badge" id="conn-status">Disconnected</div>
         </div>
 
-        <div class="card">
-            <h3>Inverse Engine (CL Identification)</h3>
-            <div class="metric">Estimation Confidence: <span class="val" id="conf">0%</span></div>
-            <div style="height: 5px; background: #30363d; border-radius: 3px; margin-bottom: 10px;">
-                <div id="conf-bar"
-                    style="height: 100%; background: #238636; width: 0%; border-radius: 3px; transition: width 0.3s;">
+        <div class="card" style="border-right: 4px solid var(--accent-blue)">
+            <h2>Vector Perception (CV/ML)</h2>
+            <div class="metrics-grid">
+                <div class="metric-item">
+                    <span class="label">AoA (Alpha)</span>
+                    <span class="value"><span id="aoa">0.00</span>°</span>
+                </div>
+                <div class="metric-item">
+                    <span class="label">Airspeed</span>
+                    <span class="value" id="vel">0.00 <small style="font-size:10px">m/s</small></span>
+                </div>
+                <div class="metric-item">
+                    <span class="label">Flux Residual</span>
+                    <span class="value" id="flux-res" style="color: #fb7185">0.00</span>
+                </div>
+                <div class="metric-item">
+                    <span class="label">Discovery Delta</span>
+                    <span class="value" id="discovery-delta" style="color: var(--accent-indigo)">0.00</span>
                 </div>
             </div>
-            <div class="chart-box"><canvas id="cl-chart"></canvas></div>
-            <p style="font-size: 11px; color: #8b949e; margin-top: 10px;">
-                Blue: Estimated | Red: Target Inferred from Vision.
+        </div>
+
+        <div class="card">
+            <h2>Inverse Design Loop (Moving Target)</h2>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                <span style="font-size: 11px; color: var(--text-dim)">CL Identification: <b id="cl-curr"
+                        style="color:#fff">0.00</b></span>
+                <span style="font-size: 11px; color: var(--accent-blue)">Tracking Active</span>
+            </div>
+            <div class="chart-box">
+                <canvas id="cl-chart"></canvas>
+            </div>
+            <div style="display: flex; gap: 15px; margin-top: 12px; font-size: 10px; opacity: 0.8">
+                <div style="display: flex; align-items: center; gap: 5px">
+                    <div style="width: 8px; height: 8px; background: #38bdf8; border-radius: 2px"></div> Identified
+                    (RLS)
+                </div>
+                <div style="display: flex; align-items: center; gap: 5px">
+                    <div style="width: 8px; height: 8px; border: 1px dashed #818cf8; border-radius: 2px"></div> Dynamic
+                    Target (True)
+                </div>
+            </div>
+        </div>
+
+        <div class="card" style="background: rgba(129, 140, 248, 0.05); border: 1px solid rgba(129, 140, 248, 0.2)">
+            <h2>AeroTwin Observation Mode</h2>
+            <p style="font-size: 11px; line-height: 1.6; color: var(--text-dim)" id="phase-label">
+                The Digital Twin is now identifying **Dynamic Lift Coefficients**—tracking a moving target triggered by
+                Angle of Attack changes.
             </p>
         </div>
 
-        <div class="card" style="background: rgba(88, 166, 255, 0.05); border-color: rgba(88, 166, 255, 0.3);">
-            <h3>Theory of Operation</h3>
-            <p style="font-size: 11px; line-height: 1.4;">
-                AeroTwin uses <b>Recursive Least Squares (RLS)</b> to identify aerodynamic coefficients in real-time. By
-                inverting the 6-DOF equations, the twin observes motion to infer lift stability—enabling precise health
-                monitoring and performance optimization.
-            </p>
-        </div>
-
-        <div style="font-size: 11px; color: #8b949e; text-align: center; margin-top: 20px;">
-            Scroll to Zoom | Drag to Orbit | Right-Click to Pan
+        <div class="nav-links">
+            <a href="?path=circle" class="nav-btn">Orbit Path</a>
+            <a href="?path=square" class="nav-btn">Square Run</a>
+            <a href="?path=climb" class="nav-btn">Climb Dash</a>
         </div>
     </div>
 
     <div id="canvas-container">
-        <div id="overlay-tools">Orbit: Left | Pan: Right | Zoom: Scroll</div>
+        <div id="overlay-tools">
+            <span><b>Orbit:</b> Left Mouse</span>
+            <span><b>Pan:</b> Right Mouse</span>
+            <span><b>Zoom:</b> Scroll</span>
+        </div>
     </div>
 
     <script>
-        // --- CHARTS SETUP ---
+        // --- CHARTS CONFIG ---
         const ctx = document.getElementById('cl-chart').getContext('2d');
         const clChart = new Chart(ctx, {
             type: 'line',
             data: {
-                labels: [],
+                labels: Array(100).fill(''),
                 datasets: [
-                    { label: 'Estimated', data: [], borderColor: '#58a6ff', borderWidth: 2, pointRadius: 0 },
-                    { label: 'Target (Vision)', data: [], borderColor: '#f85149', borderWidth: 1, borderDash: [5, 5], pointRadius: 0 }
+                    { label: 'Identified', data: Array(100).fill(0), borderColor: '#38bdf8', borderWidth: 2.5, pointRadius: 0, tension: 0.1 },
+                    { label: 'Ground Truth', data: Array(100).fill(0), borderColor: '#818cf8', borderWidth: 1.5, borderDash: [4, 4], pointRadius: 0 }
                 ]
             },
-            options: { animation: false, scales: { x: { display: false }, y: { min: -0.5, max: 2.0 } }, plugins: { legend: { display: false } } }
+            options: {
+                animation: false,
+                scales: { x: { display: false }, y: { min: -0.1, max: 2.3, grid: { color: 'rgba(255,255,255,0.05)' } } },
+                plugins: { legend: { display: false } },
+                responsive: true,
+                maintainAspectRatio: false
+            }
         });
 
-        // --- THREE.JS SETUP ---
+        // --- THREE.JS ENGINE ---
         const container = document.getElementById('canvas-container');
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x0b0e14);
+        scene.fog = new THREE.FogExp2(0x020617, 0.001);
 
-        const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        const camera = new THREE.PerspectiveCamera(60, container.clientWidth / container.clientHeight, 1, 10000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setPixelRatio(window.devicePixelRatio);
         renderer.setSize(container.clientWidth, container.clientHeight);
-        renderer.shadowMap.enabled = true;
+        renderer.outputEncoding = THREE.sRGBEncoding;
         container.appendChild(renderer.domElement);
 
         const controls = new THREE.OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
-        controls.dampingFactor = 0.05;
+        camera.position.set(400, 300, 400);
 
-        // Visual Helpers
-        scene.add(new THREE.GridHelper(500, 100, 0x30363d, 0x161b22));
-        scene.add(new THREE.AxesHelper(10));
+        // Environment
+        scene.add(new THREE.GridHelper(1000, 50, 0x1e293b, 0x0f172a));
+        scene.add(new THREE.AmbientLight(0x404040, 2));
+        const spot = new THREE.DirectionalLight(0xffffff, 1);
+        spot.position.set(100, 200, 100);
+        scene.add(spot);
 
-        // Lighting
-        scene.add(new THREE.AmbientLight(0xffffff, 0.6));
-        const sun = new THREE.DirectionalLight(0xffffff, 1);
-        sun.position.set(50, 100, 50);
-        scene.add(sun);
-
-        // Drone Rendering
+        // Drone
         const drone = new THREE.Group();
-        const body = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.3, 0.8), new THREE.MeshPhongMaterial({ color: 0x00f2ff }));
-        drone.add(body);
-
-        const rotors = [[1, 0.2, 1], [-1, 0.2, 1], [1, 0.2, -1], [-1, 0.2, -1]].map(p => {
-            const r = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.6, 0.02), new THREE.MeshPhongMaterial({ color: 0xffff00, transparent: true, opacity: 0.6 }));
-            r.position.set(...p);
-            drone.add(r);
-            return r;
-        });
+        const chassis = new THREE.Mesh(new THREE.BoxGeometry(4, 0.8, 2.5), new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.9 }));
+        drone.add(chassis);
         scene.add(drone);
-        camera.position.set(20, 20, 20);
 
-        // --- PATH INITIALIZATION ---
-        const pathPositions = [];
-        const pathGeometry = new THREE.BufferGeometry();
-        const pathMaterial = new THREE.LineBasicMaterial({ color: 0xffaa00, linewidth: 3 });
-        const pathLine = new THREE.Line(pathGeometry, pathMaterial);
-        scene.add(pathLine);
+        const trailPoints = [];
+        const trailGeom = new THREE.BufferGeometry();
+        const trailMat = new THREE.LineBasicMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.5 });
+        const trailLine = new THREE.Line(trailGeom, trailMat);
+        scene.add(trailLine);
 
+        // --- TELEMETRY ---
         const ws = new WebSocket(`ws://${location.host}${location.search}`);
-        ws.onopen = () => {
-            document.getElementById('status').style.background = '#238636';
-            document.getElementById('status-text').innerText = 'LINKED';
-        };
+
+        ws.onopen = () => { document.getElementById('conn-status').innerText = 'Online'; };
 
         ws.onmessage = (event) => {
             const data = JSON.parse(event.data);
 
-            // Update UI
-            document.getElementById('alt').innerText = data.alt.toFixed(2);
-            document.getElementById('vel').innerText = data.vx.toFixed(2);
-            document.getElementById('conf').innerText = (data.conf * 100).toFixed(0) + '%';
-            document.getElementById('conf-bar').style.width = (data.conf * 100) + '%';
-            document.getElementById('wp-label').innerText = data.wp;
+            // Core UI Mapping
+            document.getElementById('aoa').innerText = data.aoa;
+            document.getElementById('vel').innerText = data.vx.toFixed(1);
+            document.getElementById('flux-res').innerText = data.res.toFixed(6);
+            document.getElementById('discovery-delta').innerText = data.delta.toFixed(4);
+            document.getElementById('cl-curr').innerText = data.cl.toFixed(3);
+            document.getElementById('phase-label').innerText = `PHASE: ${data.wp} | TRACKING MOVING AERO-TARGET`;
 
-            // Update 3D Drone (NED -> Three.js Mapping)
-            const newPos = new THREE.Vector3(data.py, -data.pz, -data.px);
-            drone.position.copy(newPos);
+            // 3D Visual System
+            const pos = new THREE.Vector3(data.py, -data.pz, -data.px);
+            drone.position.copy(pos);
             drone.quaternion.set(data.qy, -data.qz, -data.qx, data.qw);
-            rotors.forEach(r => r.rotation.y += 0.5);
 
-            // Update Path
-            pathPositions.push(newPos.clone());
-            if (pathPositions.length > 1000) pathPositions.shift();
-            pathGeometry.setFromPoints(pathPositions);
+            trailPoints.push(pos.clone());
+            if (trailPoints.length > 800) trailPoints.shift();
+            trailGeom.setFromPoints(trailPoints);
 
-            // Update Charts
-            if (clChart.data.labels.length > 50) {
-                clChart.data.labels.shift();
-                clChart.data.datasets[0].data.shift();
-                clChart.data.datasets[1].data.shift();
-            }
-            clChart.data.labels.push("");
+            // Real-Time Discovery Chart
+            clChart.data.datasets[0].data.shift();
             clChart.data.datasets[0].data.push(data.cl);
-            clChart.data.datasets[1].data.push(data.cl_target);
+            clChart.data.datasets[1].data.shift();
+            clChart.data.datasets[1].data.push(data.cl_true);
             clChart.update('none');
         };
+
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
 
         window.addEventListener('resize', () => {
             camera.aspect = container.clientWidth / container.clientHeight;
@@ -249,11 +375,6 @@
             renderer.setSize(container.clientWidth, container.clientHeight);
         });
 
-        function animate() {
-            requestAnimationFrame(animate);
-            controls.update();
-            renderer.render(scene, camera);
-        }
         animate();
     </script>
 </body>

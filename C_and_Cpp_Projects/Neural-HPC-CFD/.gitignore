@@ -1,0 +1,33 @@
+# Build Artifacts
+*.o
+*.out
+*.exe
+neural_cfd
+
+# CUDA/Compiler
+*.cubin
+*.fatbin
+*.hash
+*.ptx
+*.d
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+
+# Visual Studio / IDEs
+.vscode/
+.vs/
+.idea/
+*.swp
+*.swo
+
+# Simulation Outputs
+*.bin
+*.png
+/data/
+/results/
+/logs/
