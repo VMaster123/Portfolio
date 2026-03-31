@@ -41,6 +41,30 @@ Control the flight route by passing URL parameters:
 
 ------------------------------------------------------------------------
 
+## 🔌 API Endpoints
+
+The server exposes a set of RESTful API endpoints alongside the WebSocket stream.
+
+-   **`GET /api/v1/system-status`**
+    Returns the server's uptime and number of active dashboard viewers.
+    ```json
+    { "status": "online", "uptime": 12.5, "activeConnections": 1 }
+    ```
+
+-   **`GET /api/v1/simulation/paths`**
+    Returns the available flight and trajectory paths.
+    ```json
+    { "availablePaths": ["circle", "square", "climb"], "defaultPath": "circle" }
+    ```
+
+-   **`GET /api/v1/simulation/config`**
+    Returns baseline physical parameters such as mass, gravity, ambient density, and refresh rate.
+    ```json
+    { "updateRateHz": 50, "dt": 0.02, "physicsParams": { "mass": 1.5, "g": 9.81, "rho": 1.225, "S": 0.12, "CL_slope": 5.2, "noise": 0.02 } }
+    ```
+
+------------------------------------------------------------------------
+
 ## 🧠 Technical Domains
 
 -   **State Estimation**: Simulated EKF (Extended Kalman Filter) confidence metrics.
