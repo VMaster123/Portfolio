@@ -1,0 +1,7 @@
+Newton's Second Law states that F = ma.
+
+Work is defined as W = F * d * cos(theta).
+
+Ohm's Law states V = IR.
+
+Kinetic energy is KE = 1/2 mv^2.

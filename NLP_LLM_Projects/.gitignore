@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Environments
+venv/
+.env
+.env.*
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+
+# Models / embeddings / FAISS indexes (VERY IMPORTANT)
+*.faiss
+*.index
+*.pkl
+
+# SQLite database (IMPORTANT — often contains your data)
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs
+*.log
